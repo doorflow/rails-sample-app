@@ -1,0 +1,23 @@
+<div class="navbar sticky top-0 z-50 bg-[linear-gradient(135deg,#667eea_0%,#764ba2_100%)] shadow-lg">
+  <div class="navbar-start">
+    <%= link_to root_path, class: "btn btn-ghost gap-3 hover:bg-white/10" do %>
+      <div class="bg-white rounded-lg p-2 shadow-md">
+        <span class="text-lg font-black text-primary">CW</span>
+      </div>
+      <div class="text-left">
+        <p class="text-lg font-bold text-white tracking-tight leading-tight">CoWork HQ</p>
+        <p class="text-xs text-white/80 font-medium">DoorFlow SDK Example</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="navbar-end">
+    <div class="flex items-center gap-2">
+      <% nav_items.each do |item| %>
+        <%= link_to item[:path], class: nav_item_classes(active: item[:active]) do %>
+          <%= item[:name] %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

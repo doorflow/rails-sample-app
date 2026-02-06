@@ -1,0 +1,160 @@
+<div class="<%= container_classes %>" data-controller="connection-status">
+  <div class="card-body">
+    <% if loading? %>
+      <%# Loading State %>
+      <div class="flex items-center justify-center gap-4">
+        <span class="loading loading-spinner loading-md text-primary"></span>
+        <span class="text-base-content/70 font-medium">Checking connection status...</span>
+      </div>
+
+    <% elsif not_configured? %>
+      <%# Not Configured State %>
+      <div class="space-y-5">
+        <div class="flex items-start gap-4">
+          <div class="bg-warning/20 rounded-xl p-3">
+            <%= helpers.render_icon("alert-triangle", css_class: "w-7 h-7 text-warning") %>
+          </div>
+          <div class="flex-1">
+            <h2 class="card-title">Setup Required</h2>
+            <p class="text-sm text-base-content/70 mt-1">Please configure your DoorFlow credentials to enable the integration.</p>
+          </div>
+        </div>
+
+        <% if missing_config.any? %>
+          <div class="bg-base-200 rounded-xl p-4">
+            <p class="text-xs text-base-content/50 font-semibold uppercase tracking-wide mb-3">Missing environment variables:</p>
+            <div class="space-y-2">
+              <% missing_config.each do |config| %>
+                <div class="flex items-center gap-2">
+                  <span class="badge badge-error badge-xs"></span>
+                  <code class="text-sm font-mono"><%= config %></code>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="bg-info/10 rounded-xl p-4">
+          <p class="font-semibold text-info mb-2">Quick Setup</p>
+          <div class="space-y-2 text-sm text-base-content/80">
+            <p><span class="font-semibold">1.</span> Copy the example environment file:</p>
+            <div class="bg-info/10 rounded-lg px-3 py-2">
+              <code class="text-xs font-mono">cp .env.example .env</code>
+            </div>
+            <p><span class="font-semibold">2.</span> Edit <code class="kbd kbd-xs">.env</code> with your DoorFlow OAuth credentials</p>
+            <p><span class="font-semibold">3.</span> Restart the dev server</p>
+          </div>
+        </div>
+
+        <div class="bg-primary/10 rounded-xl p-4">
+          <p class="text-sm font-semibold text-primary mb-3">Where to Get Credentials</p>
+          <a href="https://developer.doorflow.com/applications"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="btn btn-primary btn-sm">
+            Create Application on DoorFlow
+          </a>
+          <p class="text-sm text-base-content/70 mt-3">Set the redirect URI to:</p>
+          <div class="bg-primary/10 rounded-lg px-3 py-2 mt-2">
+            <code class="text-xs font-mono">http://localhost:3333/api/auth/callback</code>
+          </div>
+          <p class="text-sm text-base-content/70 mt-2">
+            Then copy the <span class="font-semibold">Client ID</span> and <span class="font-semibold">Client Secret</span> into your <code class="kbd kbd-xs">.env</code> file.
+          </p>
+        </div>
+      </div>
+
+    <% elsif connected? %>
+      <%# Connected State %>
+      <div class="space-y-5">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-success badge-lg animate-pulse"></span>
+            <div>
+              <h2 class="card-title">Connected to DoorFlow</h2>
+              <% if account_name.present? %>
+                <p class="text-sm text-base-content/60">
+                  <span class="font-semibold"><%= account_name %></span>
+                  <% if user_email.present? %>
+                    <span class="text-base-content/40 mx-1">&middot;</span>
+                    <span><%= user_email %></span>
+                  <% end %>
+                </p>
+              <% else %>
+                <p class="text-sm text-base-content/60">Your integration is active</p>
+              <% end %>
+            </div>
+          </div>
+          <%= button_to "Disconnect",
+                        api_auth_disconnect_path,
+                        method: :delete,
+                        class: "btn btn-outline btn-error btn-sm",
+                        data: { turbo: false, confirm: "Are you sure you want to disconnect?" } %>
+        </div>
+
+        <%= render DevNoteComponent.new(
+          variant: :code,
+          title: "Token Lifecycle"
+        ) do %>
+          <div class="flex gap-6 items-center mb-4">
+            <div class="flex-1">
+              <p class="text-xs text-base-content/50 font-semibold uppercase tracking-wide">Token Expires</p>
+              <p class="text-lg font-bold">
+                <%= expires_in_words || "< 1 min" %>
+              </p>
+            </div>
+            <% if scopes_list.any? %>
+              <div class="flex-1">
+                <p class="text-xs text-base-content/50 font-semibold uppercase tracking-wide">Scopes</p>
+                <p class="text-sm font-medium font-mono">
+                  <%= scopes_list.join(" ") %>
+                </p>
+              </div>
+            <% end %>
+            <%= button_to "Refresh Token",
+                          api_auth_refresh_path,
+                          method: :post,
+                          class: "btn btn-outline btn-sm",
+                          data: { turbo: false } %>
+          </div>
+          <p class="text-sm text-base-content/70">
+            The SDK handles token management automatically. Just provide a storage adapter
+            and the SDK refreshes expired tokens whenever you make an API call.
+            <strong>Disconnect</strong> revokes tokens server-side and clears storage — users must reauthorize.
+            <strong>Refresh Token</strong> is just a demo button; in production, you never need to call it manually.
+          </p>
+        <% end %>
+      </div>
+
+    <% else %>
+      <%# Not Connected State - Purple gradient background %>
+      <div class="space-y-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge badge-ghost badge-sm bg-white/30"></span>
+            <span class="text-sm font-semibold opacity-90">Not Connected</span>
+          </div>
+          <h2 class="text-2xl font-bold">Connect to DoorFlow</h2>
+          <p class="opacity-80 mt-2">
+            Link your DoorFlow account to start syncing members and managing access credentials.
+          </p>
+        </div>
+
+        <%= link_to "Connect to DoorFlow",
+                    api_auth_connect_path,
+                    class: "btn btn-lg bg-white text-primary hover:bg-white/90 border-0",
+                    data: { turbo: false } %>
+
+        <div class="bg-white/20 rounded-xl p-4 mt-4">
+          <div class="flex items-center gap-2 mb-2">
+            <%= helpers.render_icon("lightbulb", css_class: "w-4 h-4 opacity-80") %>
+            <span class="text-xs font-bold uppercase tracking-wider opacity-80">Devs: Why OAuth?</span>
+          </div>
+          <p class="text-sm opacity-90">
+            OAuth lets you connect to DoorFlow accounts securely — no sharing API keys. Access is authorized per-account, credentials stay protected. Scalable and secure.
+          </p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<% content_for(:title) { "Members - DoorFlow Rails Demo" } %>
+
+<div class="space-y-8">
+  <%# Page Header - matches TypeScript styling %>
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <p class="text-sm font-bold text-purple-500 uppercase tracking-widest mb-2">
+        CRM Data
+      </p>
+      <h1 class="text-3xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
+        Members
+      </h1>
+      <p class="text-lg text-gray-600">
+        Manage your CRM members and their DoorFlow access integration.
+      </p>
+    </div>
+  </div>
+
+  <%# Connection Warning - shows when not connected %>
+  <% unless @connected %>
+    <div class="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-1">
+      <div class="bg-white rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-orange-100 rounded-full p-2 flex items-center justify-center">
+              <%= render_icon("alert-triangle", css_class: "w-5 h-5 text-orange-600") %>
+            </div>
+            <div>
+              <p class="font-bold text-gray-800">DoorFlow Not Connected</p>
+              <p class="text-sm text-gray-600">Connect to DoorFlow to sync members and manage access credentials.</p>
+            </div>
+          </div>
+          <%= link_to root_path, class: "px-4 py-2 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors" do %>
+            Connect Now
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Member List Component %>
+  <%= render Members::MemberListComponent.new(members: @members, filter: @filter) %>
+</div>

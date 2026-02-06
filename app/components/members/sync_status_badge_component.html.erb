@@ -1,0 +1,7 @@
+<span class="<%= badge_classes %>">
+  <span class="<%= dot_classes %>"></span>
+  <span class="text-sm font-medium"><%= linked? ? "Linked" : "Not Linked" %></span>
+  <% if linked? %>
+    <span class="font-mono text-xs opacity-75">#<%= doorflow_person_id %></span>
+  <% end %>
+</span>

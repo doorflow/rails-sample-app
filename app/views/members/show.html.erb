@@ -1,0 +1,171 @@
+<% content_for(:title) { "#{@member.full_name} - DoorFlow Rails Demo" } %>
+
+<div class="space-y-6">
+  <%# Back Link - matches TypeScript styling %>
+  <%= link_to members_path, class: "inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-purple-500 transition-colors" do %>
+    <span>&larr;</span>
+    <span>Back to Members</span>
+  <% end %>
+
+  <%# Profile Header Card - matches TypeScript styling with gradient header %>
+  <div class="bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <%# Gradient Header %>
+    <div class="h-24 <%= @member.premium? ? 'bg-gradient-to-r from-purple-500 to-purple-700' : 'bg-gradient-to-r from-gray-700 to-gray-500' %>"></div>
+
+    <%# Profile Content %>
+    <div class="px-8 pb-8 relative">
+      <%# Avatar - positioned to overlap header %>
+      <div class="absolute -top-12 left-8">
+        <div class="w-24 h-24 rounded-2xl bg-white shadow-[0_4px_15px_rgba(0,0,0,0.15)] border-4 border-white flex items-center justify-center overflow-hidden">
+          <% if @member.image_url %>
+            <img
+              src="<%= @member.image_url %>"
+              alt="<%= @member.full_name %>"
+              class="w-full h-full object-cover"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <span class="text-2xl font-bold <%= @member.premium? ? 'text-purple-500' : 'text-gray-600' %> hidden items-center justify-center w-full h-full">
+              <%= @member.initials %>
+            </span>
+          <% else %>
+            <span class="text-2xl font-bold <%= @member.premium? ? 'text-purple-500' : 'text-gray-600' %> flex items-center justify-center w-full h-full">
+              <%= @member.initials %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Actions - top right %>
+      <div class="flex justify-end pt-4 gap-2">
+        <%= link_to edit_member_path(@member), class: "px-4 py-2 border border-gray-300 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors" do %>
+          Edit Profile
+        <% end %>
+        <%= button_to member_path(@member), method: :delete, data: { confirm: "Are you sure you want to delete #{@member.full_name}? This cannot be undone." }, class: "px-4 py-2 border border-red-300 text-red-600 rounded-full text-sm font-medium hover:bg-red-50 transition-colors" do %>
+          Delete
+        <% end %>
+      </div>
+
+      <%# Name & Status %>
+      <div class="mt-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2"><%= @member.full_name %></h1>
+        <div class="flex items-center gap-3">
+          <%= render Members::SyncStatusBadgeComponent.new(doorflow_person_id: @member.doorflow_person_id) %>
+          <span class="px-3 py-1 rounded-full text-xs font-bold uppercase <%= @member.premium? ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600' %>">
+            <%= @member.membership_type %>
+          </span>
+        </div>
+      </div>
+
+      <%# Info Grid %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div class="p-4 bg-gray-50 rounded-xl">
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Email</p>
+          <p class="font-medium text-gray-800"><%= @member.email %></p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-xl">
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Phone</p>
+          <p class="font-medium <%= @member.phone.present? ? 'text-gray-800' : 'text-gray-400' %>">
+            <%= @member.phone.presence || "Not provided" %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Connection Warning - shows when not connected %>
+  <% unless @connected %>
+    <div class="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-1">
+      <div class="bg-white rounded-xl p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-orange-100 rounded-xl p-3 flex items-center justify-center">
+            <%= render_icon("plug-zap", css_class: "w-7 h-7 text-orange-600") %>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-800">DoorFlow Not Connected</p>
+            <p class="text-sm text-gray-600">Connect to DoorFlow to manage credentials.</p>
+          </div>
+          <%= link_to root_path, class: "px-4 py-2 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors" do %>
+            Connect
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Team Memberships Section - matches TypeScript gradient header card %>
+  <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div class="bg-gradient-to-r from-pink-400 to-red-400 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <%= render_icon("users", css_class: "w-5 h-5 text-white") %>
+        <span class="font-bold text-white">Team Memberships</span>
+      </div>
+    </div>
+    <div class="p-6">
+      <%= form_with model: @member, url: member_path(@member), method: :patch, local: true do |f| %>
+        <%= render Teams::TeamSelectComponent.new(teams: @teams, selected_team_ids: @member.crm_team_ids) %>
+        <div class="mt-4">
+          <%= f.submit "Save Team Changes", class: "px-6 py-3 bg-gradient-to-r from-pink-400 to-red-400 text-white rounded-xl font-bold hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(240,147,251,0.35)] transition-all cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @member.linked? && @connected %>
+    <%# Credentials Section - matches TypeScript gradient header card %>
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div class="bg-gradient-to-r from-teal-500 to-green-400 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <%= render_icon("credit-card", css_class: "w-5 h-5 text-white") %>
+            <span class="font-bold text-white">Credentials</span>
+          </div>
+          <button type="button"
+                  onclick="document.getElementById('credential-form').classList.toggle('hidden')"
+                  class="px-3 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors">
+            + Add
+          </button>
+        </div>
+      </div>
+      <div class="p-6">
+        <div id="credential-form" class="hidden mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <%= render Credentials::AddCredentialFormComponent.new(
+            person: { id: @member.doorflow_person_id },
+            credential_types: @credential_types,
+            existing_credentials: @credentials
+          ) %>
+        </div>
+        <%= render Credentials::CredentialListComponent.new(credentials: @credentials, person_id: @member.doorflow_person_id) %>
+      </div>
+    </div>
+  <% elsif !@member.linked? %>
+    <%# Not Linked Message - matches TypeScript styling %>
+    <div class="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-1">
+      <div class="bg-white rounded-xl p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-orange-100 rounded-xl p-3 flex items-center justify-center">
+            <%= render_icon("unlink", css_class: "w-7 h-7 text-orange-600") %>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-800">Not Linked to DoorFlow</p>
+            <p class="text-sm text-gray-600">
+              This member hasn't been synced to DoorFlow yet. Use the sync feature in
+              <%= link_to "Settings", settings_path, class: "text-orange-600 hover:underline font-medium" %>
+              to link members and enable credential management.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Developer Note %>
+  <%= render DevNoteComponent.new(
+    variant: :code,
+    title: "Access Control",
+    sdk_method: "doorflow.people.updatePerson({ id, personInput: { groupIds } })"
+  ) do %>
+    Group assignments are managed through teams. When you assign a member to a team
+    that's mapped to a DoorFlow group (in Settings), their <code>groupIds</code> are
+    updated via the SDK during sync. This controls which doors they can access.
+  <% end %>
+</div>

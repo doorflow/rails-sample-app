@@ -1,0 +1,16 @@
+# CRM Teams test fixtures
+
+engineering:
+  name: Engineering
+  description: Software engineering team
+  doorflow_group_id: 100
+
+marketing:
+  name: Marketing
+  description: Marketing and communications team
+  doorflow_group_id: 200
+
+sales:
+  name: Sales
+  description: Sales team
+  doorflow_group_id: null

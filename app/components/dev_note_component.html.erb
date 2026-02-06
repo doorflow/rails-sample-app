@@ -1,0 +1,31 @@
+<div class="<%= container_classes %>">
+  <%# Header section - matches TypeScript HStack header %>
+  <% if title || file_path %>
+    <div class="<%= header_classes %>">
+      <div class="<%= icon_container_classes %>">
+        <%= helpers.render_icon(icon_name, css_class: icon_classes) %>
+      </div>
+      <div class="flex-1 flex items-center justify-between">
+        <% if formatted_title %>
+          <span class="<%= title_classes %>"><%= formatted_title %></span>
+        <% end %>
+        <% if file_path %>
+          <code class="<%= file_path_classes %>"><%= file_path %></code>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Content section - matches TypeScript VStack content %>
+  <div class="p-4 space-y-3">
+    <% if sdk_method %>
+      <div class="<%= code_classes %>">
+        <%= sdk_method %>
+      </div>
+    <% end %>
+
+    <div class="<%= content_classes %>">
+      <%= content %>
+    </div>
+  </div>
+</div>

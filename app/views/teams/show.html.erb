@@ -1,0 +1,98 @@
+<% content_for(:title) { "#{@team.name} - DoorFlow Rails Demo" } %>
+
+<div class="space-y-6">
+  <%# Back Link %>
+  <%= link_to teams_path, class: "inline-flex items-center gap-1 text-gray-600 hover:text-gray-900" do %>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    Back to Teams
+  <% end %>
+
+  <%# Header %>
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-lg bg-orange-100 flex items-center justify-center">
+          <%= render_icon("users", css_class: "w-8 h-8 text-orange-600") %>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-gray-900"><%= @team.name %></h1>
+            <% if @team.mapped? %>
+              <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                Mapped to Group #<%= @team.doorflow_group_id %>
+              </span>
+            <% end %>
+          </div>
+          <% if @team.description.present? %>
+            <p class="text-gray-600 mt-1"><%= @team.description %></p>
+          <% end %>
+          <p class="text-sm text-gray-500 mt-2">
+            <%= @team.crm_members.count %> members
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <%= link_to edit_team_path(@team), class: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors" do %>
+          Edit
+        <% end %>
+        <%= button_to team_path(@team), method: :delete, data: { confirm: "Are you sure you want to delete this team?" }, class: "px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors" do %>
+          Delete
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# Group Mapping %>
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">DoorFlow Group Mapping</h2>
+
+    <%= render DevNoteComponent.new(
+      variant: :tip,
+      title: "Group Mapping",
+      file_path: "app/controllers/teams_controller.rb"
+    ) do %>
+      Map this team to a DoorFlow group. When members are synced, they will
+      automatically be assigned to the mapped group based on their team membership.
+    <% end %>
+
+    <%= form_with model: @team, url: team_path(@team), method: :patch, local: true, class: "mt-4" do |f| %>
+      <div class="mb-4">
+        <%= f.label :doorflow_group_id, "DoorFlow Group", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <% if @groups.any? %>
+          <%= f.select :doorflow_group_id,
+                       options_for_select([["None", nil]] + @groups.map { |g| [g[:name], g[:id]] }, @team.doorflow_group_id),
+                       {},
+                       class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" %>
+        <% else %>
+          <p class="text-sm text-gray-500">Connect to DoorFlow to see available groups.</p>
+        <% end %>
+      </div>
+      <% if @groups.any? %>
+        <%= f.submit "Update Mapping", class: "px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors cursor-pointer" %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# Team Members %>
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Team Members</h2>
+
+    <% if @team.crm_members.any? %>
+      <div class="space-y-3">
+        <% @team.crm_members.each do |member| %>
+          <%= render Members::MemberCardComponent.new(member: member) %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-gray-50 rounded-xl p-8 text-center">
+        <p class="text-gray-600">No members in this team</p>
+        <p class="text-sm text-gray-400 mt-1">
+          <%= link_to "Add members", members_path, class: "text-purple-600 hover:underline" %>
+          and assign them to this team
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>

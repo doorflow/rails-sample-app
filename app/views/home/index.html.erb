@@ -1,0 +1,76 @@
+<% content_for(:title) { "CoWork HQ - DoorFlow SDK Example" } %>
+
+<div class="bg-gray-50 min-h-[calc(100vh-64px)]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="space-y-10">
+
+      <%# Hero Section %>
+      <div class="text-center py-6">
+        <h1 class="text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent mb-4">
+          CoWork HQ
+        </h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Connect to DoorFlow and watch your real access control data appear in this app.
+          Members, Teams, Credentials — all synced and ready to manage.
+        </p>
+      </div>
+
+      <%# Connection Status - Centered %>
+      <div class="max-w-2xl mx-auto w-full">
+        <%= render ConnectionStatusComponent.new(
+          state: @connection_status[:state],
+          expires_at: @connection_status[:expires_at],
+          scope: @connection_status[:scope],
+          missing_config: @connection_status[:missing_config] || [],
+          account_name: @connection_status[:account_name],
+          user_email: @connection_status[:user_email]
+        ) %>
+      </div>
+
+      <%# Feature Cards Section %>
+      <div>
+        <h2 class="text-2xl font-bold text-center mb-8 text-gray-800">
+          What This App Demonstrates
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <%= render_feature_card(
+            icon: "lock",
+            title: "OAuth 2.0 Authentication",
+            description: "Secure authorization flow with automatic token refresh. Your credentials stay safe on the server.",
+            sdk_methods: ["auth.authorization_url", "auth.handle_callback"],
+            color: "purple"
+          ) %>
+          <%= render_feature_card(
+            icon: "refresh-cw",
+            title: "Member Sync",
+            description: "Match CRM members to DoorFlow people by email. Create new people for unmatched members.",
+            sdk_methods: ["client.people.list", "client.people.create"],
+            color: "blue"
+          ) %>
+          <%= render_feature_card(
+            icon: "credit-card",
+            title: "Credential Management",
+            description: "Assign access cards and PINs to members. Issue mobile credentials for smartphone access.",
+            sdk_methods: ["client.credentials.create"],
+            color: "green"
+          ) %>
+          <%= render_feature_card(
+            icon: "users",
+            title: "Group Assignment",
+            description: "Add members to access groups to control which doors they can open.",
+            sdk_methods: ["client.groups.list", "person.update"],
+            color: "orange"
+          ) %>
+          <%= render_feature_card(
+            icon: "shield",
+            title: "Secure Architecture",
+            description: "All DoorFlow API calls happen server-side. Secrets never leave the server.",
+            sdk_methods: ["auth.authenticated?", "auth.disconnect"],
+            color: "pink"
+          ) %>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

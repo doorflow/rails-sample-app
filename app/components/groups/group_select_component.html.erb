@@ -1,0 +1,29 @@
+<div class="space-y-3" data-controller="group-select">
+  <% if groups.any? %>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <% groups.each do |group| %>
+        <label class="<%= card_classes(group.id) %>" data-group-select-target="card">
+          <div class="flex items-start gap-3">
+            <input type="checkbox"
+                   name="group_ids[]"
+                   value="<%= group.id %>"
+                   <%= "checked" if selected?(group.id) %>
+                   class="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                   data-action="group-select#toggle">
+            <div class="flex-1">
+              <p class="font-medium text-gray-900"><%= group.name %></p>
+              <% if group.description.present? %>
+                <p class="text-sm text-gray-500 mt-0.5"><%= truncate(group.description, length: 50) %></p>
+              <% end %>
+            </div>
+          </div>
+        </label>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-gray-50 rounded-xl p-6 text-center">
+      <p class="text-gray-600">No groups available</p>
+      <p class="text-sm text-gray-400 mt-1">Groups are loaded from DoorFlow when connected.</p>
+    </div>
+  <% end %>
+</div>

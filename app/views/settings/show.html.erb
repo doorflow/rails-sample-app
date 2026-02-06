@@ -1,0 +1,270 @@
+<% content_for(:title) { "Settings - DoorFlow Rails Demo" } %>
+
+<div class="space-y-6">
+  <%# Header - matches TypeScript styling %>
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">DoorFlow Integration Settings</h1>
+    <p class="text-gray-600">Manage cached data and configure team-to-group mappings.</p>
+  </div>
+
+  <%# Connection Status %>
+  <%= render ConnectionStatusComponent.new(
+    state: @connection_status[:state],
+    expires_at: @connection_status[:expires_at],
+    scope: @connection_status[:scope],
+    missing_config: @connection_status[:missing_config] || []
+  ) %>
+
+  <%# Member <-> People Sync - matches TypeScript gradient card styling %>
+  <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-400 to-cyan-400 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <%= render_icon("refresh-cw", css_class: "w-5 h-5 text-white") %>
+        <span class="font-bold text-white">Member &harr; People Sync</span>
+      </div>
+    </div>
+    <div class="p-6 space-y-5">
+      <%# Sync Stats Cards - matches TypeScript SimpleGrid %>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="text-center p-4 bg-gray-50 rounded-xl">
+          <p class="text-2xl font-bold text-gray-800"><%= @member_stats[:total] %></p>
+          <p class="text-xs text-gray-500 font-medium uppercase">Total Members</p>
+        </div>
+        <div class="text-center p-4 bg-green-50 rounded-xl">
+          <div class="flex items-center justify-center gap-1">
+            <%= render_icon("user-check", css_class: "w-5 h-5 text-green-600") %>
+            <span class="text-2xl font-bold text-green-600"><%= @member_stats[:linked] %></span>
+          </div>
+          <p class="text-xs text-green-600 font-medium uppercase">Linked</p>
+        </div>
+        <div class="text-center p-4 bg-orange-50 rounded-xl">
+          <div class="flex items-center justify-center gap-1">
+            <%= render_icon("user-x", css_class: "w-5 h-5 text-orange-600") %>
+            <span class="text-2xl font-bold text-orange-600"><%= @member_stats[:unlinked] %></span>
+          </div>
+          <p class="text-xs text-orange-600 font-medium uppercase">Unlinked</p>
+        </div>
+      </div>
+
+      <%# Sync Button - only show if unlinked members exist %>
+      <% if @member_stats[:unlinked] > 0 && @connection_status[:state] == :connected %>
+        <%= form_with url: sync_api_members_path, method: :post, local: true do |f| %>
+          <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-400 to-cyan-400 text-white rounded-xl font-bold text-lg hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(79,172,254,0.35)] transition-all flex items-center justify-center gap-2">
+            <%= render_icon("refresh-cw", css_class: "w-5 h-5") %>
+            <span>Sync <%= @member_stats[:unlinked] %> Unlinked Member<%= @member_stats[:unlinked] != 1 ? 's' : '' %></span>
+          </button>
+        <% end %>
+      <% end %>
+
+      <%# Developer Note %>
+      <%= render DevNoteComponent.new(
+        variant: :code,
+        title: "Sync Implementation",
+        sdk_method: "doorflow.people.createPerson({ personInput })",
+        file_path: "app/services/member_sync_service.rb"
+      ) do %>
+        This sync matches CRM members to DoorFlow people by email. Unmatched members
+        are created via the SDK. In production, handle CRUD operations automatically
+        when members change. For large datasets, use a job queue (Sidekiq, GoodJob) -
+        the SDK calls stay the same.
+      <% end %>
+    </div>
+  </div>
+
+  <%# Team to Group Mappings - matches TypeScript gradient card styling %>
+  <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div class="bg-gradient-to-r from-pink-400 to-red-400 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <%= render_icon("link", css_class: "w-5 h-5 text-white") %>
+          <span class="font-bold text-white">Team &rarr; Group Mappings</span>
+        </div>
+        <%= link_to teams_path, class: "px-3 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors" do %>
+          Manage Teams
+        <% end %>
+      </div>
+    </div>
+    <div class="p-6">
+      <% if @teams.any? && @groups.any? %>
+        <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">
+          <%= @teams.count %> team<%= @teams.count != 1 ? 's' : '' %> &bull;
+          <%= @teams.select(&:mapped?).count %> mapped
+        </p>
+        <div class="space-y-3">
+          <% @teams.each do |team| %>
+            <% mapped_group = @groups.find { |g| g[:id] == team.doorflow_group_id } %>
+            <div class="p-4 bg-gray-50 rounded-xl border-2 <%= mapped_group ? 'border-green-200' : 'border-gray-200' %>">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-semibold text-gray-800"><%= team.name %></span>
+                    <% if mapped_group %>
+                      <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">Mapped</span>
+                    <% end %>
+                  </div>
+                  <% if team.description.present? %>
+                    <p class="text-sm text-gray-500 mb-2"><%= team.description %></p>
+                  <% end %>
+                  <p class="text-sm <%= mapped_group ? 'text-green-600' : 'text-gray-400' %>">
+                    <%= mapped_group ? "&rarr; #{mapped_group[:name]}".html_safe : "Not mapped to a group" %>
+                  </p>
+                </div>
+                <%= link_to edit_team_path(team), class: "px-3 py-1.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors" do %>
+                  <%= mapped_group ? "Change" : "Map" %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% elsif @teams.empty? %>
+        <div class="text-center py-8">
+          <div class="flex justify-center mb-3">
+            <%= render_icon("users", css_class: "w-10 h-10 text-gray-400") %>
+          </div>
+          <p class="text-gray-500 font-medium mb-4">No teams created yet.</p>
+          <%= link_to teams_path, class: "px-4 py-2 bg-gradient-to-r from-pink-400 to-red-400 text-white rounded-full text-sm font-bold hover:-translate-y-0.5 transition-all inline-block" do %>
+            Create Teams
+          <% end %>
+        </div>
+      <% elsif @groups.empty? %>
+        <div class="text-center py-8">
+          <div class="flex justify-center mb-3">
+            <%= render_icon("clipboard-list", css_class: "w-10 h-10 text-gray-400") %>
+          </div>
+          <p class="text-gray-500 font-medium">No DoorFlow groups available.</p>
+          <p class="text-gray-400 text-sm mt-1">Create groups in DoorFlow, then refresh below.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Developer Note - Team Mappings %>
+  <%= render DevNoteComponent.new(
+    variant: :code,
+    title: "Group Assignment",
+    sdk_method: "doorflow.people.updatePerson({ id, personInput: { groupIds } })"
+  ) do %>
+    Team&rarr;Group mappings are stored locally. During sync, each member's <code>teamIds</code> are
+    resolved to DoorFlow <code>groupIds</code> and passed to the API. This controls which
+    doors they can access. Groups must exist in DoorFlow first - create them in the admin portal.
+  <% end %>
+
+  <%# Refresh All Button %>
+  <%= form_with url: refresh_settings_path, method: :post, local: true do |f| %>
+    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-bold hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(102,126,234,0.35)] transition-all" <%= 'disabled' unless @connection_status[:state] == :connected %>>
+      Refresh All Cached Data
+    </button>
+  <% end %>
+
+  <%# Credential Types and Groups Cards - matches TypeScript SimpleGrid %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <%# Credential Types Card %>
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div class="bg-gradient-to-r from-teal-500 to-green-400 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <%= render_icon("credit-card", css_class: "w-5 h-5 text-white") %>
+            <span class="font-bold text-white">Credential Types</span>
+          </div>
+          <%= form_with url: refresh_settings_path(type: 'credential_types'), method: :post, local: true, class: "inline" do |f| %>
+            <button type="submit" class="px-3 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors" <%= 'disabled' unless @connection_status[:state] == :connected %>>
+              Refresh
+            </button>
+          <% end %>
+        </div>
+      </div>
+      <div class="p-6">
+        <% if @credential_types.any? %>
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">
+            <%= @credential_types.count %> type<%= @credential_types.count != 1 ? 's' : '' %> cached
+          </p>
+          <div class="space-y-2">
+            <% @credential_types.each do |type| %>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-gray-700 text-sm"><%= type[:label] %></span>
+                  <span class="text-xs text-gray-400 font-mono">ID: <%= type[:id] %></span>
+                </div>
+                <% if type[:slug] %>
+                  <p class="text-xs text-gray-400"><%= type[:slug] %></p>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-4">
+            <p class="text-gray-500 text-sm">No credential types found</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Groups Card %>
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <%= render_icon("users", css_class: "w-5 h-5 text-white") %>
+            <span class="font-bold text-white">DoorFlow Groups</span>
+          </div>
+          <%= form_with url: refresh_settings_path(type: 'groups'), method: :post, local: true, class: "inline" do |f| %>
+            <button type="submit" class="px-3 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors" <%= 'disabled' unless @connection_status[:state] == :connected %>>
+              Refresh
+            </button>
+          <% end %>
+        </div>
+      </div>
+      <div class="p-6">
+        <% if @groups.any? %>
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">
+            <%= @groups.count %> group<%= @groups.count != 1 ? 's' : '' %> cached
+          </p>
+          <div class="space-y-2">
+            <% @groups.each do |group| %>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-gray-700 text-sm"><%= group[:name] %></span>
+                  <span class="text-xs text-gray-400 font-mono">ID: <%= group[:id] %></span>
+                </div>
+                <% if group[:notes].present? %>
+                  <p class="text-xs text-gray-400 mt-1"><%= group[:notes] %></p>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-4">
+            <p class="text-gray-500 text-sm">No groups found</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# Developer Note - Caching %>
+  <%= render DevNoteComponent.new(variant: :tip, title: "Why Cache?") do %>
+    Credential types and groups rarely change, so we recommend that you cache them.
+    This avoids unnecessary API calls. In production, you might use Redis
+    or your database instead. The SDK calls (<code>doorflow.credentialTypes.listCredentialTypes()</code>,
+    <code>doorflow.groups.listGroups()</code>) are the same either way.
+  <% end %>
+
+  <%# Factory Reset - matches TypeScript styling %>
+  <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden border-2 border-red-100">
+    <div class="bg-red-50 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <%= render_icon("rotate-ccw", css_class: "w-5 h-5 text-red-600") %>
+        <span class="font-bold text-red-700">Factory Reset</span>
+      </div>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-600 text-sm mb-4">
+        Reset the application to its initial demo state. This will disconnect from DoorFlow,
+        restore sample members and teams, and clear all DoorFlow links and group mappings.
+      </p>
+      <%= button_to api_reset_path, method: :post, data: { confirm: "Are you sure you want to reset to demo state?\n\nThis will:\n- Disconnect from DoorFlow\n- Reset all members to sample data\n- Reset all teams to sample data\n\nThis cannot be undone." }, class: "px-4 py-2 border border-red-300 text-red-600 rounded-full font-semibold hover:bg-red-50 transition-colors" do %>
+        Reset to Demo State
+      <% end %>
+    </div>
+  </div>
+</div>

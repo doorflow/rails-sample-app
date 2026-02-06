@@ -1,0 +1,17 @@
+{
+  "name": "cowork-rails",
+  "description": "Full OAuth + sync + credentials demo",
+  "language": "ruby",
+  "framework": "rails",
+  "port": 3333,
+  "redirect_path": "/api/auth/callback",
+  "env_file": ".env",
+  "env_mapping": {
+    "client_id": "DOORFLOW_CLIENT_ID",
+    "client_secret": "DOORFLOW_CLIENT_SECRET",
+    "redirect_uri": "DOORFLOW_REDIRECT_URI"
+  },
+  "setup_commands": ["bundle install", "bin/rails db:setup"],
+  "start_command": "bin/dev",
+  "start_url": "http://localhost:3333"
+}

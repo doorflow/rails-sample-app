@@ -1,0 +1,86 @@
+<div class="space-y-4">
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <h3 class="text-lg font-semibold text-gray-900">
+      <%= dry_run? ? "Preview Results" : "Sync Results" %>
+    </h3>
+    <% if dry_run? %>
+      <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+        Dry Run
+      </span>
+    <% end %>
+  </div>
+
+  <%# Stats Grid %>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <% stats.each do |stat| %>
+      <div class="<%= stat_box_classes(stat[:color]) %>">
+        <p class="text-2xl font-bold"><%= stat[:value] %></p>
+        <p class="text-sm font-medium opacity-75"><%= stat[:label] %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Summary %>
+  <p class="text-sm text-gray-600">
+    <% if dry_run? %>
+      <strong><%= total_processed %></strong> members would be processed.
+      No changes have been made.
+    <% else %>
+      <strong><%= total_processed %></strong> members processed.
+      <% if has_failures? %>
+        <span class="text-red-600">Some operations failed.</span>
+      <% end %>
+    <% end %>
+  </p>
+
+  <%# Details Accordion %>
+  <% if results[:failed]&.any? %>
+    <details class="bg-red-50 rounded-xl p-4">
+      <summary class="cursor-pointer text-red-700 font-medium">
+        View Failed Items (<%= results[:failed].length %>)
+      </summary>
+      <ul class="mt-3 space-y-2 text-sm text-red-600">
+        <% results[:failed].each do |item| %>
+          <li class="flex items-start gap-2">
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span>
+              <%= item[:email] || item[:name] %>
+              <% if item[:error] %>
+                - <%= item[:error] %>
+              <% end %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+
+  <% if results[:created]&.any? %>
+    <details class="bg-green-50 rounded-xl p-4">
+      <summary class="cursor-pointer text-green-700 font-medium">
+        View Created (<%= results[:created].length %>)
+      </summary>
+      <ul class="mt-3 space-y-1 text-sm text-green-600">
+        <% results[:created].each do |item| %>
+          <li><%= item[:email] || item[:name] %></li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+
+  <% if results[:updated]&.any? %>
+    <details class="bg-blue-50 rounded-xl p-4">
+      <summary class="cursor-pointer text-blue-700 font-medium">
+        View Updated (<%= results[:updated].length %>)
+      </summary>
+      <ul class="mt-3 space-y-1 text-sm text-blue-600">
+        <% results[:updated].each do |item| %>
+          <li><%= item[:email] || item[:name] %></li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+</div>

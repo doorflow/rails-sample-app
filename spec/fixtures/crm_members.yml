@@ -1,0 +1,32 @@
+# CRM Members test fixtures
+
+alice:
+  first_name: Alice
+  last_name: Johnson
+  email: alice@example.com
+  phone: "555-0101"
+  mobile: "555-0102"
+  department: Engineering
+  job_title: Software Engineer
+  membership_type: premium
+  doorflow_person_id: 1001
+
+bob:
+  first_name: Bob
+  last_name: Smith
+  email: bob@example.com
+  phone: "555-0201"
+  department: Marketing
+  job_title: Marketing Manager
+  membership_type: standard
+  doorflow_person_id: null
+
+carol:
+  first_name: Carol
+  last_name: Williams
+  email: carol@example.com
+  phone: "555-0301"
+  department: Sales
+  job_title: Sales Representative
+  membership_type: premium
+  doorflow_person_id: 1003
