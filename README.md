@@ -49,12 +49,12 @@ Get your credentials from [developer.doorflow.com/applications](https://develope
 
 ## SDK Usage
 
-This app uses the official [`doorflow-api`](https://rubygems.org/gems/doorflow-api) SDK with the client-instance pattern for thread-safe, multi-tenant support.
+This app uses the official [`doorflow`](https://rubygems.org/gems/doorflow) SDK with the client-instance pattern for thread-safe, multi-tenant support.
 
 ### Initialize the Client
 
 ```ruby
-require 'doorflow-api'
+require 'doorflow'
 
 # Set up OAuth authentication
 auth = DoorFlow::Auth::DoorFlowAuth.new(
@@ -192,7 +192,7 @@ Your CRM remains the source of truth; DoorFlow handles physical access control.
 | API Calls | All DoorFlow calls proxied through `/api/doorflow/*` routes |
 | Thread Safety | Client-instance pattern (`DoorFlow::Client.new(auth:)`) for safe multi-tenant support |
 
-> **Production note:** File-based token storage is fine for development, but in production you should store tokens in your database or Redis. The SDK accepts any storage adapter via the `storage:` parameter — see the [SDK README](../sdks/doorflow-sdk-ruby/README.md#token-storage) for examples.
+> **Production note:** File-based token storage is fine for development, but in production you should store tokens in your database or Redis. The SDK accepts any storage adapter via the `storage:` parameter — see the [SDK README](https://github.com/doorflow/doorflow-sdk-ruby#token-storage) for examples.
 
 ## API Routes
 
@@ -235,7 +235,7 @@ These routes proxy requests to the DoorFlow API (secrets stay server-side):
 ## Tech Stack
 
 - **Framework**: Rails 8.0 (with Hotwire)
-- **SDK**: [`doorflow-api`](https://rubygems.org/gems/doorflow-api)
+- **SDK**: [`doorflow`](https://rubygems.org/gems/doorflow)
 
 ## For Developers
 
@@ -243,7 +243,7 @@ This sample app includes `<DevNote>` components throughout the UI that explain i
 
 ## What's Next
 
-This sample app covers request/response patterns — syncing members, managing credentials, assigning groups. Ready to receive real-time events when someone badges in or a credential changes? See [Webhooks in the SDK README](../sdks/doorflow-sdk-ruby/README.md#webhooks).
+This sample app covers request/response patterns — syncing members, managing credentials, assigning groups. Ready to receive real-time events when someone badges in or a credential changes? See [Webhooks in the SDK README](https://github.com/doorflow/doorflow-sdk-ruby#webhooks).
 
 ## License
 
