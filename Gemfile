@@ -20,7 +20,9 @@ gem "cssbundling-rails"
 gem "jbuilder"
 
 # DoorFlow SDK for access control integration
-gem "doorflow"
+# Local checkout while we develop the Elements session API surface
+# against unreleased server changes on doorguard's Elements branch.
+gem "doorflow", path: "/Users/simonreed/rails/doorflow-samples/sdks/doorflow-sdk-ruby"
 
 # ViewComponent for reusable UI components
 gem "view_component"
