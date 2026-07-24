@@ -8,4 +8,9 @@ fi
 # Default to port 3000 if not specified
 export PORT="${PORT:-3000}"
 
-exec foreman start -f Procfile.dev --env /dev/null "$@"
+# Load .env.local on top of .env when present so per-dev overrides
+# (tunnel hosts, port pools, alternate creds) win over the committed .env.
+ENV_FILES=".env"
+[ -f .env.local ] && ENV_FILES=".env,.env.local"
+
+exec foreman start -f Procfile.dev -e "$ENV_FILES" "$@"

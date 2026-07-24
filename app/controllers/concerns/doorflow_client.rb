@@ -72,12 +72,22 @@ module DoorflowClient
   def fetch_account_info
     account = doorflow.account.retrieve
     {
-      account_name: account.name,
-      user_email: account.user&.email
+      account_name: account.respond_to?(:name) ? account.name : account[:name],
+      user_email:   extract_user_email(account.respond_to?(:user) ? account.user : account[:user])
     }
   rescue StandardError => e
-    Rails.logger.warn "[DoorflowClient] Failed to fetch account info: #{e.message}"
+    # Avoid #message because some SDK error responses include large inspect
+    # graphs that overflow the stack on interpolation. Class name is enough.
+    Rails.logger.warn "[DoorflowClient] Failed to fetch account info: #{e.class}"
     { account_name: nil, user_email: nil }
+  end
+
+  # The SDK sometimes returns the user as a struct-like object and sometimes
+  # as a plain Hash (depending on which deserialiser path runs). Normalise.
+  def extract_user_email(user)
+    return nil if user.nil?
+    return user.email if user.respond_to?(:email)
+    user[:email] || user["email"]
   end
 
   # Generate OAuth authorization URL

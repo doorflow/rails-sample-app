@@ -7,8 +7,6 @@ class SettingsController < ApplicationController
     @groups = fetch_groups
     @credential_types = fetch_credential_types
     @member_stats = compute_member_stats
-    @sync_results = session[:sync_results]
-    session.delete(:sync_results)
   end
 
   def refresh

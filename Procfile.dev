@@ -1,3 +1,4 @@
-web: env RUBY_DEBUG_OPEN=true bin/rails server
+web: env RUBY_DEBUG_OPEN=true bin/rails server -p ${DFDEV_PORT:-4514}
 js: yarn build --watch
 css: yarn build:css --watch
+hoist: hoist doorflow-sample ${DFDEV_PORT:-4514}

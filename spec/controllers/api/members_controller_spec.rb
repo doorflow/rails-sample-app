@@ -16,10 +16,11 @@ RSpec.describe Api::MembersController, type: :controller do
       stub_doorflow_person_retrieve({ id: alice.doorflow_person_id, first_name: "Alice" })
     end
 
-    it "syncs members and stores results in session" do
+    it "syncs members and redirects with a summary notice" do
       post :sync, format: :html
-      expect(session[:sync_results]).to be_present
       expect(response).to redirect_to(settings_path)
+      expect(flash[:notice]).to match(/\ASync completed — \d+ created/)
+      expect(session[:sync_results]).to be_nil
     end
 
     it "returns JSON results when requested" do
@@ -32,11 +33,11 @@ RSpec.describe Api::MembersController, type: :controller do
     context "with specific member_ids" do
       it "syncs only specified members" do
         expect_any_instance_of(MemberSyncService).to receive(:sync) do |_, members, **_opts|
-          expect(members.pluck(:id)).to eq([bob.id])
+          expect(members.pluck(:id)).to eq([ bob.id ])
           { created: [], updated: [], matched: [], failed: [] }
         end
 
-        post :sync, params: { member_ids: [bob.id] }, format: :json
+        post :sync, params: { member_ids: [ bob.id ] }, format: :json
       end
     end
 

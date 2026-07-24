@@ -20,7 +20,7 @@ gem "cssbundling-rails"
 gem "jbuilder"
 
 # DoorFlow SDK for access control integration
-gem "doorflow"
+gem "doorflow", "~> 1.1"
 
 # ViewComponent for reusable UI components
 gem "view_component"
