@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  # Origin where the DoorFlow Elements widgets and the /js/v1 host SDK
+  # are served from. Falls back through API base then a sensible prod
+  # default so a misconfigured dev env still produces a valid URL.
+  def elements_host
+    ENV.fetch("DOORFLOW_WIDGET_URL") { ENV.fetch("DOORFLOW_API_BASE", "https://doorflow.com") }
+  end
+
   # Check if DoorFlow is connected
   def doorflow_connected?
     client = DoorflowClient.new

@@ -1,0 +1,106 @@
+<% content_for(:title) { "DoorFlow.js Web Embed — CoWork HQ Sample" } %>
+
+<div class="bg-gray-50 min-h-[calc(100vh-64px)]">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+    <div>
+      <h1 class="text-3xl font-extrabold text-gray-900">DoorFlow.js — Web Embed Demo</h1>
+      <p class="mt-2 text-gray-600 max-w-3xl">
+        Both widgets, side by side, talking to the same DoorFlow person. Tick a group on the left
+        (admin) and the right (member) reacts in real time via the Action Cable channel that
+        Elements widgets subscribe to. This page mirrors the integration guide step-for-step:
+        mint a session server-side, drop the
+        <code class="text-sm bg-gray-200 px-1 rounded">&lt;script src="…/js/v1"&gt;</code> tag in the
+        page, call <code class="text-sm bg-gray-200 px-1 rounded">DoorFlow.mountAdmin(...)</code>
+        and <code class="text-sm bg-gray-200 px-1 rounded">DoorFlow.mount(...)</code>.
+      </p>
+    </div>
+
+    <% if @member.nil? %>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-6 text-amber-800">
+        No CrmMembers exist yet. Run the member sync from <%= link_to "Settings", settings_path, class: "underline font-semibold" %> first.
+      </div>
+    <% else %>
+      <div class="text-sm text-gray-500">
+        Embedded widgets for <span class="font-semibold text-gray-900"><%= @member.full_name %></span>
+        (<%= @member.email %>)
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <%# ===== ADMIN ===== %>
+        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+              <h2 class="text-lg font-bold text-gray-900">Admin Widget</h2>
+            </div>
+            <span class="text-xs uppercase tracking-wider text-purple-600 font-semibold">Staff view</span>
+          </div>
+          <% if @admin_result.success? %>
+            <div id="df-admin"></div>
+          <% else %>
+            <%= render "minter_error", result: @admin_result %>
+          <% end %>
+        </div>
+
+        <%# ===== MEMBER ===== %>
+        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+              <h2 class="text-lg font-bold text-gray-900">Member Widget</h2>
+            </div>
+            <span class="text-xs uppercase tracking-wider text-blue-600 font-semibold">Member view</span>
+          </div>
+          <% if @member_result.success? %>
+            <div id="df-member"></div>
+          <% else %>
+            <%= render "minter_error", result: @member_result %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 text-gray-100 rounded-lg p-6 overflow-x-auto">
+        <div class="text-xs uppercase tracking-wider text-gray-400 mb-2">What this page is doing</div>
+<pre class="text-sm leading-relaxed"><code>&lt;div id=&quot;df-admin&quot;&gt;&lt;/div&gt;
+&lt;div id=&quot;df-member&quot;&gt;&lt;/div&gt;
+&lt;script src=&quot;<%= elements_host %>/js/v1&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  DoorFlow.mountAdmin('#df-admin', {
+    sessionToken: '&lt;%= @admin_session_token %&gt;',
+    onIssued:  function (e) { console.log('Issued',  e); },
+    onRevoked: function (e) { console.log('Revoked', e); }
+  });
+
+  DoorFlow.mount('#df-member', {
+    sessionToken: '&lt;%= @member_session_token %&gt;',
+    onProvisioned: function (e) { console.log('Pass added',   e); },
+    onDeactivated: function (e) { console.log('Pass removed', e); }
+  });
+&lt;/script&gt;</code></pre>
+      </div>
+
+      <%# Actual mount. The host SDK auto-detects its origin from the
+          script src; window.DOORFLOW_ELEMENTS_HOST is only needed if you
+          host the SDK behind a different proxy. %>
+      <script src="<%= elements_host %>/js/v1?cb=<%= Time.now.to_i %>"></script>
+      <script>
+        <% if @admin_result.success? %>
+          DoorFlow.mountAdmin('#df-admin', {
+            sessionToken: <%= raw @admin_result.token.to_json %>,
+            onIssued:  function (e) { console.log('[DoorFlow][admin] issued',  e); },
+            onRevoked: function (e) { console.log('[DoorFlow][admin] revoked', e); }
+          });
+        <% end %>
+        <% if @member_result.success? %>
+          DoorFlow.mount('#df-member', {
+            sessionToken: <%= raw @member_result.token.to_json %>,
+            onProvisioned: function (e) { console.log('[DoorFlow][member] provisioned', e); },
+            onDeactivated: function (e) { console.log('[DoorFlow][member] deactivated', e); }
+          });
+        <% end %>
+      </script>
+    <% end %>
+  </div>
+</div>
