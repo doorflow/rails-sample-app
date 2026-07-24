@@ -16,19 +16,25 @@ module Api
 
       members = if member_ids.present?
                   CrmMember.where(id: member_ids)
-                else
+      else
                   CrmMember.all
-                end
+      end
 
       service = MemberSyncService.new(client: doorflow)
       results = service.sync(members, dry_run: dry_run)
 
-      session[:sync_results] = results
-
       if request.format.json?
         render json: results
       else
-        redirect_to settings_path, notice: "Sync completed"
+        # Just summarise counts in the flash. Earlier versions stashed the
+        # whole results object in the session for /settings to render — but
+        # /settings doesn't actually render it AND large results overflowed
+        # the 4 KB cookie session.
+        summary = %i[created updated matched failed]
+                  .map { |k| "#{Array(results[k]).size} #{k}" }
+                  .join(", ")
+        verb = dry_run ? "Sync (dry run)" : "Sync"
+        redirect_to settings_path, notice: "#{verb} completed — #{summary}"
       end
     rescue StandardError => e
       Rails.logger.error "Sync failed: #{e.message}"
